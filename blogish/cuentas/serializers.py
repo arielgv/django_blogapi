@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 
 class RegisterSerializer(serializers.Serializer):
     first_name = serializers.CharField()
@@ -20,3 +21,21 @@ class RegisterSerializer(serializers.Serializer):
         user.set_password(validated_data['password'])
 
         return validated_data
+    
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validation(self, data):
+        
+        if not User.objects.filter(username = data['username']).exists():
+            raise serializers.ValidationError('Error : Account not found.')
+        
+        return data
+    
+    def authentication(self,data):
+
+        user = authenticate(username = data['username'], password = data['password'])
+        if not user :
+            return {'message': 'Invalid login credentials', 'data': {}}
+        return {'message': 'login ok', 'data': {}}
